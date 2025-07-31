@@ -57,7 +57,7 @@ module.exports = [
                 
                 if (!canUseCommand) {
                     return await interaction.editReply({
-                        content: '❌ Only gym leaders of this channel can award badges! An administrator can assign you using `/add @user` in this channel.'
+                        content: '❌ Only gym leaders of this channel can award badges! An administrator can assign you using `/addgymleader @user` in this channel.'
                     });
                 }
 
@@ -174,7 +174,7 @@ module.exports = [
                 
                 if (!canUseCommand) {
                     return await interaction.editReply({
-                        content: '❌ Only gym leaders of this channel can log battle results! An administrator can assign you using `/add @user` in this channel.'
+                        content: '❌ Only gym leaders of this channel can log battle results! An administrator can assign you using `/addgymleader @user` in this channel.'
                     });
                 }
 

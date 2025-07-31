@@ -37,8 +37,8 @@ module.exports = [
                     {
                         name: '🛠️ For Admins',
                         value: '`/setup` - Initialize the gym league\n' +
-                               '`/add @user` - Assign gym leader to channel\n' +
-                               '`/remove @user` - Remove gym leader from channel\n' +
+                               '`/addgymleader @user` - Assign gym leader to channel\n' +
+                               '`/removegymleader @user` - Remove gym leader from channel\n' +
                                '`/leaders all` - View all server leaders\n' +
                                'All gym leader commands work for admins',
                         inline: false
@@ -47,7 +47,7 @@ module.exports = [
                         name: '🏆 How the New System Works',
                         value: '1. **No Roles Required** - Gym leaders are stored in database\n' +
                                '2. **Channel-Specific** - Each gym channel has its own leaders\n' +
-                               '3. **Easy Management** - Use `/add` and `/remove` in gym channels\n' +
+                               '3. **Easy Management** - Use `/addgymleader` and `/removegymleader` in gym channels\n' +
                                '4. **Battle & Manage** - Leaders can only control their assigned gyms\n' +
                                '5. **Admin Override** - Administrators can use all commands',
                         inline: false
@@ -55,7 +55,7 @@ module.exports = [
                     {
                         name: '🚀 Getting Started (Admins)',
                         value: '1. Run `/setup` to create gym channels\n' +
-                               '2. Go to each gym channel and use `/add @user`\n' +
+                               '2. Go to each gym channel and use `/addgymleader @user`\n' +
                                '3. Assigned leaders can now manage their gym\n' +
                                '4. Trainers can start challenging gym leaders!',
                         inline: false
@@ -67,7 +67,7 @@ module.exports = [
                     },
                     {
                         name: '📞 Need More Help?',
-                        value: 'Ask an admin to assign you as a gym leader using `/add @you` in the gym channel you want to manage!',
+                        value: 'Ask an admin to assign you as a gym leader using `/addgymleader @you` in the gym channel you want to manage!',
                         inline: false
                     }
                 )
@@ -118,8 +118,8 @@ module.exports = [
                                 name: '🔧 For Administrators',
                                 value: '**Assigning Gym Leaders:**\n' +
                                        '• Go to any gym channel\n' +
-                                       '• Use `/add @user` to assign them as gym leader\n' +
-                                       '• Use `/remove @user` to remove gym leader\n' +
+                                       '• Use `/addgymleader @user` to assign them as gym leader\n' +
+                                       '• Use `/removegymleader @user` to remove gym leader\n' +
                                        '• Use `/leaders all` to see all assignments\n\n' +
                                        '**Benefits:**\n' +
                                        '• No Discord roles needed\n' +
@@ -150,7 +150,7 @@ module.exports = [
                                 name: '🎯 Quick Setup Example',
                                 value: '1. Admin runs `/setup` (creates all gym channels)\n' +
                                        '2. Admin goes to Rock Gym channel\n' +
-                                       '3. Admin uses `/add @rocktrainer`\n' +
+                                       '3. Admin uses `/addgymleader @rocktrainer`\n' +
                                        '4. @rocktrainer can now manage Rock Gym battles\n' +
                                        '5. Repeat for each gym with different users',
                                 inline: false
@@ -284,7 +284,7 @@ module.exports = [
                                 name: '🏅 New Management System',
                                 value: '• **No Discord roles needed** - Gym leaders stored in database\n' +
                                        '• **Channel-specific** - Each gym has its own leaders\n' +
-                                       '• **Easy management** - Admins use `/add @user` in gym channels\n' +
+                                       '• **Easy management** - Admins use `/addgymleader @user` in gym channels\n' +
                                        '• Use `/gyminfo management` for detailed setup guide',
                                 inline: false
                             },
@@ -350,7 +350,7 @@ module.exports = [
                         name: '🔧 New Management System',
                         value: '• **No Discord Roles** - Uses database storage\n' +
                                '• **Channel-Specific** - Leaders assigned per gym\n' +
-                               '• **Easy Administration** - Simple `/add` and `/remove`\n' +
+                               '• **Easy Administration** - Simple `/addgymleader` and `/removegymleader`\n' +
                                '• **Automatic Setup** - Database auto-creates/updates',
                         inline: false
                     },

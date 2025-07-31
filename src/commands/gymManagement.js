@@ -28,7 +28,7 @@ module.exports = [
                 
                 if (!canUseCommand) {
                     return await interaction.editReply({
-                        content: '❌ Only gym leaders of this channel can manage gym status! An administrator can assign you using `/add @user` in this channel.'
+                        content: '❌ Only gym leaders of this channel can manage gym status! An administrator can assign you using `/addgymleader @user` in this channel.'
                     });
                 }
 
@@ -95,7 +95,7 @@ module.exports = [
                 
                 if (!canUseCommand) {
                     return await interaction.editReply({
-                        content: '❌ Only gym leaders of this channel can manage gym status! An administrator can assign you using `/add @user` in this channel.'
+                        content: '❌ Only gym leaders of this channel can manage gym status! An administrator can assign you using `/addgymleader @user` in this channel.'
                     });
                 }
 
@@ -170,7 +170,7 @@ module.exports = [
                 
                 if (!canUseCommand) {
                     return await interaction.editReply({
-                        content: '❌ Only gym leaders of this channel can clear messages! An administrator can assign you using `/add @user` in this channel.'
+                        content: '❌ Only gym leaders of this channel can clear messages! An administrator can assign you using `/addgymleader @user` in this channel.'
                     });
                 }
 
@@ -281,7 +281,7 @@ module.exports = [
                 embed.addFields(
                     { name: 'Gym Status', value: statusText || 'No gyms found', inline: false },
                     { name: 'Summary', value: `🟢 Open: ${openGyms}\n🔴 Closed: ${closedGyms}\n👥 Total Channels: ${gymChannels.length}`, inline: true },
-                    { name: 'Management', value: 'Use `/add @user` in a gym channel to assign leaders\nUse `/leaders` to see current assignments', inline: true }
+                    { name: 'Management', value: 'Use `/addgymleader @user` in a gym channel to assign leaders\nUse `/leaders` to see current assignments', inline: true }
                 );
 
                 await interaction.editReply({ embeds: [embed] });

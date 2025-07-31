@@ -211,6 +211,11 @@ module.exports = {
                             name: '👑 Champion',
                             value: 'Defeat all Elite Four members to earn the right to challenge the Champion!',
                             inline: false
+                        },
+                        {
+                            name: '👥 Gym Leader Management',
+                            value: 'Administrators can assign gym leaders using `/addgymleader @user` in each gym channel.',
+                            inline: false
                         }
                     ],
                     footer: {
@@ -225,7 +230,10 @@ module.exports = {
                         `🏆 Created category: ${category.name}\n` +
                         `📝 Created ${createdChannels.length + 1} channels\n` +
                         `🌐 Web leaderboard available at: http://localhost:${process.env.WEB_PORT || 3000}\n\n` +
-                        `The gym league is now ready for trainers to begin their journey!`
+                        `**Next Steps:**\n` +
+                        `1. Visit each gym channel\n` +
+                        `2. Use \`/addgymleader @user\` to assign gym leaders\n` +
+                        `3. The gym league is now ready for trainers to begin their journey!`
             });
 
         } catch (error) {

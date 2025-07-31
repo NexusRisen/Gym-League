@@ -3,7 +3,7 @@ const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('disc
 module.exports = [
     {
         data: new SlashCommandBuilder()
-            .setName('add')
+            .setName('addgymleader')
             .setDescription('Add a gym leader to this gym channel')
             .addUserOption(option =>
                 option.setName('user')
@@ -88,7 +88,7 @@ module.exports = [
 
     {
         data: new SlashCommandBuilder()
-            .setName('remove')
+            .setName('removegymleader')
             .setDescription('Remove a gym leader from this gym channel')
             .addUserOption(option =>
                 option.setName('user')
@@ -213,7 +213,7 @@ module.exports = [
                         .setTimestamp();
 
                     if (leaders.length === 0) {
-                        embed.setDescription('❌ No gym leaders assigned to this channel yet!\n\nAdministrators can use `/add @user` to assign gym leaders.');
+                        embed.setDescription('❌ No gym leaders assigned to this channel yet!\n\nAdministrators can use `/addgymleader @user` to assign gym leaders.');
                     } else {
                         const leadersList = leaders.map((leader, index) => {
                             const addedDate = new Date(leader.created_at).toLocaleDateString();
