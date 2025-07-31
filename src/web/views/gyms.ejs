@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Information - Pokemon Gym League</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-home"></i>
+                    Pokemon Gym Information
+                </h1>
+                <p class="subtitle">
+                    Learn about all the gyms, Elite Four, and Champion challenges
+                </p>
+            </div>
+            <div class="navigation-buttons">
+                <a href="/" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Leaderboard
+                </a>
+            </div>
+        </header>
+
+        <!-- Gym Leaders Section -->
+        <div class="gym-section">
+            <h2 class="section-title">
+                <i class="fas fa-home"></i> Gym Leaders
+            </h2>
+            <p class="section-description">
+                Challenge these 18 Gym Leaders to earn their badges and prove your worth as a trainer!
+            </p>
+            
+            <div class="gym-grid">
+                <% gymConfig.gyms.forEach((gym, index) => { %>
+                    <div class="gym-info-card" style="--gym-color: <%= gym.color %>">
+                        <div class="gym-number">#<%= index + 1 %></div>
+                        <div class="gym-emoji-large"><%= gym.emoji %></div>
+                        <h3 class="gym-name"><%= gym.name %></h3>
+                        <div class="gym-type-badge" style="background: <%= gym.color %>">
+                            <%= gym.type.toUpperCase() %> TYPE
+                        </div>
+                        <div class="gym-badge-showcase">
+                            <img src="<%= gym.badgeImage %>" alt="<%= gym.name %> Badge">
+                        </div>
+                        <p class="gym-description"><%= gym.description %></p>
+                        <div class="gym-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-bolt"></i>
+                                <span>Regular Gym</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-star"></i>
+                                <span>Required for League</span>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+
+        <!-- Elite Four Section -->
+        <div class="elite-section">
+            <h2 class="section-title">
+                <i class="fas fa-crown"></i> The Elite Four
+            </h2>
+            <p class="section-description">
+                After earning 8 gym badges, you can challenge these elite trainers. Each one specializes in a specific type and represents the pinnacle of Pokemon training!
+            </p>
+            
+            <div class="elite-grid">
+                <% gymConfig.eliteFour.forEach((elite, index) => { %>
+                    <div class="elite-info-card" style="--elite-color: <%= elite.color %>">
+                        <div class="elite-rank">Elite #<%= index + 1 %></div>
+                        <div class="elite-emoji-large"><%= elite.emoji %></div>
+                        <h3 class="elite-name"><%= elite.name %></h3>
+                        <div class="elite-specialty" style="background: <%= elite.color %>">
+                            <%= elite.type.replace('elite-', '').toUpperCase() %> SPECIALIST
+                        </div>
+                        <div class="elite-badge-showcase">
+                            <img src="<%= elite.badgeImage %>" alt="<%= elite.name %> Badge">
+                        </div>
+                        <p class="elite-description"><%= elite.description %></p>
+                        <div class="elite-requirements">
+                            <div class="requirement-item">
+                                <i class="fas fa-medal"></i>
+                                <span>8+ Gym Badges Required</span>
+                            </div>
+                            <div class="requirement-item">
+                                <i class="fas fa-fire"></i>
+                                <span>Elite Level Challenge</span>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+
+        <!-- Champion Section -->
+        <div class="champion-section">
+            <h2 class="section-title">
+                <i class="fas fa-trophy"></i> The Champion
+            </h2>
+            <p class="section-description">
+                The ultimate challenge awaits! Only after defeating all Elite Four members can you face the Champion and claim your place in Pokemon history.
+            </p>
+            
+            <div class="champion-showcase">
+                <div class="champion-info-card" style="--champion-color: <%= gymConfig.champion.color %>">
+                    <div class="champion-crown">
+                        <i class="fas fa-crown"></i>
+                        <span>CHAMPION</span>
+                    </div>
+                    <div class="champion-emoji-large"><%= gymConfig.champion.emoji %></div>
+                    <h3 class="champion-name"><%= gymConfig.champion.name %></h3>
+                    <div class="champion-title" style="background: <%= gymConfig.champion.color %>">
+                        POKEMON LEAGUE CHAMPION
+                    </div>
+                    <div class="champion-badge-showcase">
+                        <img src="<%= gymConfig.champion.badgeImage %>" alt="Champion Badge">
+                    </div>
+                    <p class="champion-description"><%= gymConfig.champion.description %></p>
+                    <div class="champion-requirements">
+                        <div class="requirement-item champion-req">
+                            <i class="fas fa-medal"></i>
+                            <span>All 8 Gym Badges</span>
+                        </div>
+                        <div class="requirement-item champion-req">
+                            <i class="fas fa-star"></i>
+                            <span>Defeat All Elite Four</span>
+                        </div>
+                        <div class="requirement-item champion-req">
+                            <i class="fas fa-trophy"></i>
+                            <span>Ultimate Challenge</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Tips Section -->
+        <div class="tips-section">
+            <h2 class="section-title">
+                <i class="fas fa-lightbulb"></i> Training Tips
+            </h2>
+            
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h4>Start Your Journey</h4>
+                    <p>Begin with any gym that interests you! There's no set order for challenging gym leaders.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4>Team Strategy</h4>
+                    <p>Study each gym's type specialization and plan your team accordingly for the best chance of victory.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Track Progress</h4>
+                    <p>Use the web leaderboard to track your badge collection and see how you rank against other trainers.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4>Gym Hours</h4>
+                    <p>Gym leaders may close their gyms temporarily. Check gym status or ask when they'll be available.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h4>Good Sportsmanship</h4>
+                    <p>Win or lose, always show respect to gym leaders and fellow trainers. It's all about having fun!</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">
+                        <i class="fas fa-target"></i>
+                    </div>
+                    <h4>Elite Preparation</h4>
+                    <p>Before challenging the Elite Four, make sure you have at least 8 gym badges and are ready for tough battles!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .section-description {
+            text-align: center;
+            color: white;
+            font-size: 1.1rem;
+            margin: 0 auto 40px;
+            max-width: 600px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .gym-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .gym-info-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--gym-color);
+        }
+
+        .gym-info-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .gym-number {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: var(--gym-color);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .gym-emoji-large {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .gym-name, .elite-name, .champion-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .gym-type-badge, .elite-specialty, .champion-title {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+
+        .gym-badge-showcase, .elite-badge-showcase, .champion-badge-showcase {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid var(--gym-color, var(--elite-color, var(--champion-color)));
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .gym-badge-showcase img, .elite-badge-showcase img, .champion-badge-showcase img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gym-description, .elite-description, .champion-description {
+            color: #7f8c8d;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .gym-stats, .elite-requirements, .champion-requirements {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-item, .requirement-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #5a6c7d;
+            font-weight: 500;
+        }
+
+        .stat-item i, .requirement-item i {
+            color: var(--gym-color, var(--elite-color, var(--champion-color)));
+        }
+
+        .elite-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .elite-info-card {
+            background: linear-gradient(145deg, rgba(155, 89, 182, 0.1), rgba(255, 255, 255, 0.95));
+            border-radius: 20px;
+            padding: 35px;
+            text-align: center;
+            border: 3px solid var(--elite-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .elite-info-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(155, 89, 182, 0.2);
+        }
+
+        .elite-rank {
+            background: var(--elite-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .elite-emoji-large {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+        }
+
+        .champion-showcase {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        .champion-info-card {
+            background: linear-gradient(145deg, rgba(243, 156, 18, 0.1), rgba(255, 255, 255, 0.95));
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            border: 4px solid var(--champion-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .champion-info-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(243, 156, 18, 0.3);
+        }
+
+        .champion-crown {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--champion-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .champion-crown i {
+            font-size: 1.2rem;
+        }
+
+        .champion-emoji-large {
+            font-size: 5rem;
+            margin-bottom: 25px;
+        }
+
+        .champion-req {
+            background: rgba(243, 156, 18, 0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .tip-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .tip-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .tip-icon {
+            font-size: 2.5rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .tip-card h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .tip-card p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .gym-grid, .elite-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tips-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .champion-info-card {
+                margin: 0 15px;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= trainer.display_name || trainer.username %> - Pokemon Gym League</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="trainer-header">
+                <div class="trainer-avatar-large">
+                    <img src="https://cdn.discordapp.com/avatars/<%= trainer.id %>/<%= trainer.avatar %>.png" 
+                         alt="<%= trainer.display_name || trainer.username %>"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                </div>
+                <div class="trainer-info-large">
+                    <h1 class="trainer-name-large">
+                        <i class="fas fa-user"></i>
+                        <%= trainer.display_name || trainer.username %>
+                    </h1>
+                    <p class="trainer-stats">
+                        <span class="stat">
+                            <i class="fas fa-medal"></i>
+                            <%= trainer.total_badges %> Badges Earned
+                        </span>
+                        <span class="stat">
+                            <i class="fas fa-calendar"></i>
+                            Trainer since <%= new Date(trainer.created_at).toLocaleDateString() %>
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="navigation-buttons">
+                <a href="/?guild=<%= trainer.guild_id %>" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Leaderboard
+                </a>
+            </div>
+        </header>
+
+        <!-- Progress Section -->
+        <div class="progress-section">
+            <div class="progress-card">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Training Progress
+                </h2>
+                
+                <div class="progress-stats">
+                    <div class="progress-item">
+                        <div class="progress-label">Gym Badges</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill gym-progress" style="width: <%= Math.min((badges.filter(b => !b.gym_type.includes('elite') && b.gym_type !== 'champion').length / gymConfig.gyms.length) * 100, 100) %>%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <%= badges.filter(b => !b.gym_type.includes('elite') && b.gym_type !== 'champion').length %> / <%= gymConfig.gyms.length %>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-label">Elite Four</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill elite-progress" style="width: <%= (badges.filter(b => b.gym_type.includes('elite')).length / gymConfig.eliteFour.length) * 100 %>%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <%= badges.filter(b => b.gym_type.includes('elite')).length %> / <%= gymConfig.eliteFour.length %>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-item">
+                        <div class="progress-label">Champion</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill champion-progress" style="width: <%= badges.some(b => b.gym_type === 'champion') ? 100 : 0 %>%"></div>
+                        </div>
+                        <div class="progress-text">
+                            <%= badges.some(b => b.gym_type === 'champion') ? '1 / 1' : '0 / 1' %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Badges Collection -->
+        <div class="badges-section">
+            <h2 class="section-title">
+                <i class="fas fa-medal"></i>
+                Badge Collection
+            </h2>
+            
+            <% if (badges.length === 0) { %>
+                <div class="empty-badges">
+                    <i class="fas fa-search"></i>
+                    <h3>No badges earned yet</h3>
+                    <p>Start your Pokemon journey by challenging gym leaders!</p>
+                </div>
+            <% } else { %>
+                <div class="badges-timeline">
+                    <% badges.forEach((badge, index) => { %>
+                        <div class="badge-timeline-item">
+                            <div class="timeline-marker">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="badge-card-detailed">
+                                <div class="badge-image-large">
+                                    <img src="<%= badge.badge_image %>" alt="<%= badge.gym_name %> Badge">
+                                </div>
+                                <div class="badge-details">
+                                    <h3 class="badge-title"><%= badge.gym_name %></h3>
+                                    <p class="badge-type">
+                                        <% 
+                                        const gymInfo = [...gymConfig.gyms, ...gymConfig.eliteFour].find(g => g.type === badge.gym_type) || gymConfig.champion;
+                                        %>
+                                        <%= gymInfo ? gymInfo.emoji : '🏅' %> <%= badge.gym_type.replace('-', ' ').toUpperCase() %>
+                                    </p>
+                                    <p class="badge-date">
+                                        <i class="fas fa-calendar"></i>
+                                        Earned on <%= new Date(badge.earned_at).toLocaleDateString() %>
+                                    </p>
+                                    <% if (badge.awarded_by) { %>
+                                        <p class="badge-awarded-by">
+                                            <i class="fas fa-user-shield"></i>
+                                            Awarded by Gym Leader
+                                        </p>
+                                    <% } %>
+                                </div>
+                                <div class="badge-rank">
+                                    <span class="badge-number">#<%= index + 1 %></span>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Achievement Section -->
+        <div class="achievements-section">
+            <h2 class="section-title">
+                <i class="fas fa-trophy"></i>
+                Achievements
+            </h2>
+            
+            <div class="achievements-grid">
+                <div class="achievement-card <%= badges.length >= 1 ? 'earned' : 'locked' %>">
+                    <div class="achievement-icon">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                    <h4>First Steps</h4>
+                    <p>Earn your first gym badge</p>
+                    <div class="achievement-status">
+                        <%= badges.length >= 1 ? '✅ Earned' : '🔒 Locked' %>
+                    </div>
+                </div>
+                
+                <div class="achievement-card <%= badges.filter(b => !b.gym_type.includes('elite') && b.gym_type !== 'champion').length >= 4 ? 'earned' : 'locked' %>">
+                    <div class="achievement-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <h4>Rising Star</h4>
+                    <p>Earn 4 gym badges</p>
+                    <div class="achievement-status">
+                        <%= badges.filter(b => !b.gym_type.includes('elite') && b.gym_type !== 'champion').length >= 4 ? '✅ Earned' : '🔒 Locked' %>
+                    </div>
+                </div>
+                
+                <div class="achievement-card <%= badges.filter(b => !b.gym_type.includes('elite') && b.gym_type !== 'champion').length >= 8 ? 'earned' : 'locked' %>">
+                    <div class="achievement-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h4>League Challenger</h4>
+                    <p>Earn all 8 gym badges</p>
+                    <div class="achievement-status">
+                        <%= badges.filter(b => !b.gym_type.includes('elite') && b.gym_type !== 'champion').length >= 8 ? '✅ Earned' : '🔒 Locked' %>
+                    </div>
+                </div>
+                
+                <div class="achievement-card <%= badges.filter(b => b.gym_type.includes('elite')).length >= 4 ? 'earned' : 'locked' %>">
+                    <div class="achievement-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h4>Elite Trainer</h4>
+                    <p>Defeat all Elite Four</p>
+                    <div class="achievement-status">
+                        <%= badges.filter(b => b.gym_type.includes('elite')).length >= 4 ? '✅ Earned' : '🔒 Locked' %>
+                    </div>
+                </div>
+                
+                <div class="achievement-card <%= badges.some(b => b.gym_type === 'champion') ? 'earned' : 'locked' %>">
+                    <div class="achievement-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h4>Champion</h4>
+                    <p>Become the Pokemon League Champion</p>
+                    <div class="achievement-status">
+                        <%= badges.some(b => b.gym_type === 'champion') ? '✅ Earned' : '🔒 Locked' %>
+                    </div>
+                </div>
+                
+                <div class="achievement-card <%= badges.length >= (gymConfig.gyms.length + gymConfig.eliteFour.length + 1) ? 'earned' : 'locked' %>">
+                    <div class="achievement-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h4>Master Trainer</h4>
+                    <p>Collect all possible badges</p>
+                    <div class="achievement-status">
+                        <%= badges.length >= (gymConfig.gyms.length + gymConfig.eliteFour.length + 1) ? '✅ Earned' : '🔒 Locked' %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .trainer-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .trainer-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 6px solid #3498db;
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+        }
+
+        .trainer-avatar-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .trainer-name-large {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .trainer-name-large i {
+            color: #3498db;
+            margin-right: 15px;
+        }
+
+        .trainer-stats {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .stat i {
+            margin-right: 8px;
+            color: #3498db;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .progress-section {
+            margin-bottom: 40px;
+        }
+
+        .progress-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .progress-label {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 120px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 12px;
+            background: #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .gym-progress {
+            background: linear-gradient(90deg, #3498db, #2980b9);
+        }
+
+        .elite-progress {
+            background: linear-gradient(90deg, #9b59b6, #8e44ad);
+        }
+
+        .champion-progress {
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+        }
+
+        .progress-text {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 60px;
+        }
+
+        .badges-section {
+            margin-bottom: 40px;
+        }
+
+        .empty-badges {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-badges i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .badges-timeline {
+            position: relative;
+        }
+
+        .badges-timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #3498db, #9b59b6);
+        }
+
+        .badge-timeline-item {
+            position: relative;
+            padding-left: 80px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 18px;
+            top: 25px;
+            width: 24px;
+            height: 24px;
+            background: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .badge-card-detailed {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .badge-card-detailed:hover {
+            transform: translateY(-5px);
+        }
+
+        .badge-image-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #3498db;
+            flex-shrink: 0;
+        }
+
+        .badge-image-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .badge-details {
+            flex: 1;
+        }
+
+        .badge-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .badge-type {
+            color: #3498db;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .badge-date, .badge-awarded-by {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+
+        .badge-date i, .badge-awarded-by i {
+            margin-right: 5px;
+        }
+
+        .badge-rank {
+            text-align: center;
+        }
+
+        .badge-number {
+            background: #3498db;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .achievements-section {
+            margin-bottom: 40px;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .achievement-card.earned {
+            border: 2px solid #2ecc71;
+            background: linear-gradient(145deg, rgba(46, 204, 113, 0.1), rgba(255, 255, 255, 0.95));
+        }
+
+        .achievement-card.locked {
+            opacity: 0.6;
+            border: 2px solid #bdc3c7;
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .achievement-card.earned .achievement-icon {
+            color: #2ecc71;
+        }
+
+        .achievement-card.locked .achievement-icon {
+            color: #bdc3c7;
+        }
+
+        .achievement-card h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .achievement-card p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .achievement-status {
+            font-weight: 600;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .achievement-card.earned .achievement-status {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+
+        .achievement-card.locked .achievement-status {
+            background: #f8f9fa;
+            color: #95a5a6;
+        }
+
+        @media (max-width: 768px) {
+            .trainer-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .trainer-stats {
+                justify-content: center;
+            }
+            
+            .progress-item {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .badge-card-detailed {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .badges-timeline::before {
+                display: none;
+            }
+            
+            .badge-timeline-item {
+                padding-left: 0;
+            }
+            
+            .timeline-marker {
+                position: relative;
+                left: auto;
+                top: auto;
+                margin: 0 auto 15px;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Gym League - Leaderboard</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <i class="fas fa-trophy"></i>
+                    Pokemon Gym League
+                </h1>
+                <p class="subtitle">
+                    <% if (guild) { %>
+                        <%= guild.name %> - Trainer Leaderboard
+                    <% } else { %>
+                        Trainer Leaderboard
+                    <% } %>
+                </p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-number"><%= leaderboard.length %></div>
+                    <div class="stat-label">Total Trainers</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number"><%= gymConfig.gyms.length %></div>
+                    <div class="stat-label">Gym Leaders</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number"><%= gymConfig.eliteFour.length %></div>
+                    <div class="stat-label">Elite Four</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <a href="#leaderboard" class="tab-link active" onclick="showTab('leaderboard')">
+                <i class="fas fa-trophy"></i> Leaderboard
+            </a>
+            <a href="#gyms" class="tab-link" onclick="showTab('gyms')">
+                <i class="fas fa-home"></i> Gyms
+            </a>
+            <a href="#badges" class="tab-link" onclick="showTab('badges')">
+                <i class="fas fa-medal"></i> All Badges
+            </a>
+        </nav>
+
+        <!-- Leaderboard Tab -->
+        <div id="leaderboard" class="tab-content active">
+            <div class="leaderboard-container">
+                <% if (leaderboard.length === 0) { %>
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h3>No trainers yet!</h3>
+                        <p>The gym league is waiting for brave trainers to begin their journey.</p>
+                    </div>
+                <% } else { %>
+                    <div class="leaderboard-grid">
+                        <% leaderboard.forEach((trainer, index) => { %>
+                            <div class="trainer-card rank-<%= index + 1 %>">
+                                <div class="trainer-rank">
+                                    <span class="rank-number">#<%= index + 1 %></span>
+                                    <% if (index === 0) { %>
+                                        <i class="fas fa-crown champion-crown"></i>
+                                    <% } else if (index === 1) { %>
+                                        <i class="fas fa-medal silver-medal"></i>
+                                    <% } else if (index === 2) { %>
+                                        <i class="fas fa-medal bronze-medal"></i>
+                                    <% } %>
+                                </div>
+                                
+                                <div class="trainer-info">
+                                    <div class="trainer-avatar">
+                                        <img src="https://cdn.discordapp.com/avatars/<%= trainer.id %>/<%= trainer.avatar %>.png" 
+                                             alt="<%= trainer.display_name || trainer.username %>"
+                                             onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                                    </div>
+                                    <h3 class="trainer-name"><%= trainer.display_name || trainer.username %></h3>
+                                    <p class="trainer-badges">
+                                        <i class="fas fa-medal"></i>
+                                        <%= trainer.badge_count %> Badges
+                                    </p>
+                                </div>
+
+                                <div class="badge-collection">
+                                    <% if (trainer.badges && trainer.badges.length > 0) { %>
+                                        <div class="badges-earned">
+                                            <% trainer.badges.slice(0, 6).forEach(badge => { %>
+                                                <div class="badge-item" title="<%= badge.gym_name %>">
+                                                    <img src="<%= badge.badge_image %>" alt="<%= badge.gym_name %> Badge">
+                                                </div>
+                                            <% }); %>
+                                            <% if (trainer.badges.length > 6) { %>
+                                                <div class="badge-more">+<%= trainer.badges.length - 6 %></div>
+                                            <% } %>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="no-badges">
+                                            <i class="fas fa-question-circle"></i>
+                                            <span>No badges yet</span>
+                                        </div>
+                                    <% } %>
+                                </div>
+
+                                <div class="trainer-actions">
+                                    <a href="/trainer/<%= trainer.id %>" class="btn btn-primary">
+                                        <i class="fas fa-eye"></i> View Profile
+                                    </a>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Gyms Tab -->
+        <div id="gyms" class="tab-content">
+            <div class="gyms-grid">
+                <h2 class="section-title">
+                    <i class="fas fa-home"></i> Gym Leaders
+                </h2>
+                <div class="gym-cards">
+                    <% gymConfig.gyms.forEach(gym => { %>
+                        <div class="gym-card" style="border-color: <%= gym.color %>">
+                            <div class="gym-header">
+                                <span class="gym-emoji"><%= gym.emoji %></span>
+                                <h3 class="gym-name"><%= gym.name %></h3>
+                            </div>
+                            <div class="gym-badge">
+                                <img src="<%= gym.badgeImage %>" alt="<%= gym.name %> Badge">
+                            </div>
+                            <p class="gym-description"><%= gym.description %></p>
+                            <div class="gym-type" style="background-color: <%= gym.color %>">
+                                <%= gym.type.toUpperCase() %> TYPE
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+
+                <h2 class="section-title">
+                    <i class="fas fa-star"></i> Elite Four
+                </h2>
+                <div class="gym-cards elite-four">
+                    <% gymConfig.eliteFour.forEach(elite => { %>
+                        <div class="gym-card elite" style="border-color: <%= elite.color %>">
+                            <div class="gym-header">
+                                <span class="gym-emoji"><%= elite.emoji %></span>
+                                <h3 class="gym-name"><%= elite.name %></h3>
+                            </div>
+                            <div class="gym-badge">
+                                <img src="<%= elite.badgeImage %>" alt="<%= elite.name %> Badge">
+                            </div>
+                            <p class="gym-description"><%= elite.description %></p>
+                            <div class="gym-type elite-type" style="background-color: <%= elite.color %>">
+                                ELITE FOUR
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+
+                <h2 class="section-title">
+                    <i class="fas fa-crown"></i> Champion
+                </h2>
+                <div class="champion-card">
+                    <div class="gym-card champion" style="border-color: <%= gymConfig.champion.color %>">
+                        <div class="gym-header">
+                            <span class="gym-emoji"><%= gymConfig.champion.emoji %></span>
+                            <h3 class="gym-name"><%= gymConfig.champion.name %></h3>
+                        </div>
+                        <div class="gym-badge">
+                            <img src="<%= gymConfig.champion.badgeImage %>" alt="Champion Badge">
+                        </div>
+                        <p class="gym-description"><%= gymConfig.champion.description %></p>
+                        <div class="gym-type champion-type" style="background-color: <%= gymConfig.champion.color %>">
+                            CHAMPION
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Badges Tab -->
+        <div id="badges" class="tab-content">
+            <div class="badges-showcase">
+                <h2 class="section-title">
+                    <i class="fas fa-medal"></i> Badge Collection
+                </h2>
+                <div class="all-badges-grid">
+                    <% [...gymConfig.gyms, ...gymConfig.eliteFour, gymConfig.champion].forEach(gym => { %>
+                        <div class="badge-showcase-item">
+                            <div class="badge-image">
+                                <img src="<%= gym.badgeImage %>" alt="<%= gym.name %> Badge">
+                            </div>
+                            <h4 class="badge-name"><%= gym.name %></h4>
+                            <p class="badge-type" style="color: <%= gym.color %>">
+                                <%= gym.emoji %> <%= gym.type.replace('-', ' ').toUpperCase() %>
+                            </p>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab links
+            document.querySelectorAll('.tab-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab link
+            event.target.classList.add('active');
+        }
+
+        // Auto-refresh leaderboard every 30 seconds
+        setInterval(() => {
+            if (document.getElementById('leaderboard').classList.contains('active')) {
+                location.reload();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
