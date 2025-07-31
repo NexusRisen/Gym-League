@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 // Helper function to check if user is gym leader of specific channel
 async function isGymLeaderOfChannel(db, userId, channelId, member) {
@@ -159,7 +159,7 @@ module.exports = [
             ),
         
         async execute(interaction, db) {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             const channel = interaction.channel;
             const amount = interaction.options.getInteger('amount') || 10;

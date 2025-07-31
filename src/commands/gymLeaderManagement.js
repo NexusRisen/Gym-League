@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 module.exports = [
     {
@@ -13,7 +13,7 @@ module.exports = [
             .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
         
         async execute(interaction, db) {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             const targetUser = interaction.options.getUser('user');
             const channel = interaction.channel;
@@ -80,7 +80,7 @@ module.exports = [
             } catch (error) {
                 console.error('Error adding gym leader:', error);
                 await interaction.editReply({
-                    content: '❌ An error occurred while adding the gym leader.'
+                    content: '❌ An error occurred while adding the gym leader. Please try again.'
                 });
             }
         }
@@ -98,7 +98,7 @@ module.exports = [
             .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
         
         async execute(interaction, db) {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             const targetUser = interaction.options.getUser('user');
             const channel = interaction.channel;
@@ -185,7 +185,7 @@ module.exports = [
             ),
         
         async execute(interaction, db) {
-            await interaction.deferReply({ ephemeral: true });
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
             const scope = interaction.options.getString('scope') || 'channel';
             const channel = interaction.channel;

@@ -22,7 +22,7 @@ class Database {
                 } else {
                     console.log('Connected to SQLite database');
                     this.createTables().then(() => {
-                        this.updateTables().then(resolve).catch(reject);
+                        this.checkAndUpdateSchema().then(resolve).catch(reject);
                     }).catch(reject);
                 }
             });
@@ -76,21 +76,6 @@ class Database {
                     FOREIGN KEY (trainer_id) REFERENCES trainers (id)
                 );
 
-                -- Gym leaders table (updated structure)
-                CREATE TABLE IF NOT EXISTS gym_leaders (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    user_id TEXT NOT NULL,
-                    channel_id TEXT NOT NULL,
-                    guild_id TEXT NOT NULL,
-                    username TEXT NOT NULL,
-                    display_name TEXT,
-                    added_by TEXT,
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(user_id, channel_id),
-                    FOREIGN KEY (guild_id) REFERENCES guilds (id),
-                    FOREIGN KEY (channel_id) REFERENCES gym_channels (id)
-                );
-
                 -- Battle logs table
                 CREATE TABLE IF NOT EXISTS battle_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,22 +94,121 @@ class Database {
                 if (err) {
                     reject(err);
                 } else {
-                    console.log('Database tables created successfully');
+                    console.log('✅ Database tables created successfully');
                     resolve();
                 }
             });
         });
     }
 
-    async updateTables() {
+    async checkAndUpdateSchema() {
+        return new Promise(async (resolve, reject) => {
+            try {
+                // Check if gym_leaders table exists and has correct structure
+                const tableExists = await this.tableExists('gym_leaders');
+                
+                if (!tableExists) {
+                    console.log('🔧 Creating gym_leaders table...');
+                    await this.createGymLeadersTable();
+                } else {
+                    // Check if table has correct columns
+                    const hasCorrectSchema = await this.checkGymLeadersSchema();
+                    if (!hasCorrectSchema) {
+                        console.log('🔧 Updating gym_leaders table schema...');
+                        await this.recreateGymLeadersTable();
+                    } else {
+                        console.log('✅ gym_leaders table schema is up to date');
+                    }
+                }
+                
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+    async tableExists(tableName) {
         return new Promise((resolve, reject) => {
-            // Check if gym_leaders table needs updating
-            this.db.get("PRAGMA table_info(gym_leaders)", (err, row) => {
+            const sql = `SELECT name FROM sqlite_master WHERE type='table' AND name=?`;
+            this.db.get(sql, [tableName], (err, row) => {
                 if (err) {
-                    console.log('gym_leaders table needs to be recreated');
-                    // Recreate the gym_leaders table with new structure
-                    const updateSQL = `
-                        DROP TABLE IF EXISTS gym_leaders;
+                    reject(err);
+                } else {
+                    resolve(!!row);
+                }
+            });
+        });
+    }
+
+    async checkGymLeadersSchema() {
+        return new Promise((resolve, reject) => {
+            const sql = `PRAGMA table_info(gym_leaders)`;
+            this.db.all(sql, (err, rows) => {
+                if (err) {
+                    resolve(false); // If error, assume schema is wrong
+                } else {
+                    // Check if all required columns exist
+                    const columns = rows.map(row => row.name);
+                    const requiredColumns = ['id', 'user_id', 'channel_id', 'guild_id', 'username', 'display_name', 'added_by', 'created_at'];
+                    const hasAllColumns = requiredColumns.every(col => columns.includes(col));
+                    resolve(hasAllColumns);
+                }
+            });
+        });
+    }
+
+    async createGymLeadersTable() {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                CREATE TABLE gym_leaders (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    channel_id TEXT NOT NULL,
+                    guild_id TEXT NOT NULL,
+                    username TEXT NOT NULL,
+                    display_name TEXT,
+                    added_by TEXT,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(user_id, channel_id),
+                    FOREIGN KEY (guild_id) REFERENCES guilds (id),
+                    FOREIGN KEY (channel_id) REFERENCES gym_channels (id)
+                );
+            `;
+            
+            this.db.run(sql, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log('✅ gym_leaders table created successfully');
+                    resolve();
+                }
+            });
+        });
+    }
+
+    async recreateGymLeadersTable() {
+        return new Promise((resolve, reject) => {
+            this.db.serialize(() => {
+                this.db.run('BEGIN TRANSACTION');
+                
+                // Backup existing data if table exists
+                this.db.run(`CREATE TABLE IF NOT EXISTS gym_leaders_backup AS SELECT * FROM gym_leaders WHERE 1=0`, (err) => {
+                    if (!err) {
+                        this.db.run(`INSERT INTO gym_leaders_backup SELECT * FROM gym_leaders`);
+                    }
+                });
+                
+                // Drop old table
+                this.db.run(`DROP TABLE IF EXISTS gym_leaders`, (err) => {
+                    if (err) {
+                        this.db.run('ROLLBACK');
+                        reject(err);
+                        return;
+                    }
+                    
+                    // Create new table
+                    const createSQL = `
                         CREATE TABLE gym_leaders (
                             id INTEGER PRIMARY KEY AUTOINCREMENT,
                             user_id TEXT NOT NULL,
@@ -140,17 +224,23 @@ class Database {
                         );
                     `;
                     
-                    this.db.exec(updateSQL, (err) => {
+                    this.db.run(createSQL, (err) => {
                         if (err) {
+                            this.db.run('ROLLBACK');
                             reject(err);
                         } else {
-                            console.log('Gym leaders table updated successfully');
-                            resolve();
+                            // Try to restore data from backup
+                            this.db.run(`INSERT OR IGNORE INTO gym_leaders SELECT * FROM gym_leaders_backup`, (err) => {
+                                // Drop backup table
+                                this.db.run(`DROP TABLE IF EXISTS gym_leaders_backup`);
+                                
+                                this.db.run('COMMIT');
+                                console.log('✅ gym_leaders table recreated successfully');
+                                resolve();
+                            });
                         }
                     });
-                } else {
-                    resolve();
-                }
+                });
             });
         });
     }
@@ -222,8 +312,13 @@ class Database {
         return new Promise((resolve, reject) => {
             const sql = 'INSERT OR REPLACE INTO gym_leaders (user_id, channel_id, guild_id, username, display_name, added_by) VALUES (?, ?, ?, ?, ?, ?)';
             this.db.run(sql, [userId, channelId, guildId, username, displayName, addedBy], function(err) {
-                if (err) reject(err);
-                else resolve(this);
+                if (err) {
+                    console.error('Error adding gym leader:', err);
+                    reject(err);
+                } else {
+                    console.log(`✅ Added gym leader: ${username} to channel ${channelId}`);
+                    resolve(this);
+                }
             });
         });
     }

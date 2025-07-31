@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits, ChannelType } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, ChannelType, MessageFlags } = require('discord.js');
 const gymConfig = require('../config/gymConfig');
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     
     async execute(interaction, db) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const guild = interaction.guild;
         const guildId = guild.id;
@@ -199,7 +199,7 @@ module.exports = {
                         },
                         {
                             name: '📊 Leaderboard',
-                            value: `Check your progress on the web leaderboard: http://localhost:${process.env.WEB_PORT || 3000}`,
+                            value: `Check your progress on the web leaderboard: ${process.env.WEB_URL || `http://localhost:${process.env.WEB_PORT || 3000}`}`,
                             inline: false
                         },
                         {
@@ -226,20 +226,30 @@ module.exports = {
             });
 
             await interaction.editReply({
-                content: `✅ Pokemon Gym League setup complete!\n\n` +
-                        `🏆 Created category: ${category.name}\n` +
-                        `📝 Created ${createdChannels.length + 1} channels\n` +
-                        `🌐 Web leaderboard available at: http://localhost:${process.env.WEB_PORT || 3000}\n\n` +
-                        `**Next Steps:**\n` +
+                content: `✅ **Pokemon Gym League setup complete!**\n\n` +
+                        `🏆 **Created category:** ${category.name}\n` +
+                        `📝 **Created channels:** ${createdChannels.length + 1} total\n` +
+                        `🌐 **Web leaderboard:** ${process.env.WEB_URL || `http://localhost:${process.env.WEB_PORT || 3000}`}\n\n` +
+                        `**🚀 Next Steps:**\n` +
                         `1. Visit each gym channel\n` +
                         `2. Use \`/addgymleader @user\` to assign gym leaders\n` +
-                        `3. The gym league is now ready for trainers to begin their journey!`
+                        `3. Gym leaders can start managing battles!\n` +
+                        `4. Trainers can begin their Pokemon journey!\n\n` +
+                        `**📋 Database Status:** ✅ All gym channels registered\n` +
+                        `**🔧 System Status:** ✅ Ready for battles`
             });
 
         } catch (error) {
             console.error('Setup error:', error);
             await interaction.editReply({
-                content: '❌ An error occurred during setup. Please check the bot\'s permissions and try again.'
+                content: '❌ **Setup Error**\n\n' +
+                        `An error occurred during setup: ${error.message}\n\n` +
+                        'Please check the bot\'s permissions and try again.\n' +
+                        'The bot needs permissions to:\n' +
+                        '• Create channels\n' +
+                        '• Manage channels\n' +
+                        '• Send messages\n' +
+                        '• Embed links'
             });
         }
     }
