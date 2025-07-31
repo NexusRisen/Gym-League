@@ -21,7 +21,9 @@ class Database {
                     reject(err);
                 } else {
                     console.log('Connected to SQLite database');
-                    this.createTables().then(resolve).catch(reject);
+                    this.createTables().then(() => {
+                        this.updateTables().then(resolve).catch(reject);
+                    }).catch(reject);
                 }
             });
         });
@@ -74,14 +76,19 @@ class Database {
                     FOREIGN KEY (trainer_id) REFERENCES trainers (id)
                 );
 
-                -- Gym leaders table
+                -- Gym leaders table (updated structure)
                 CREATE TABLE IF NOT EXISTS gym_leaders (
-                    id TEXT PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id TEXT NOT NULL,
+                    channel_id TEXT NOT NULL,
                     guild_id TEXT NOT NULL,
-                    gym_type TEXT NOT NULL,
                     username TEXT NOT NULL,
+                    display_name TEXT,
+                    added_by TEXT,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    FOREIGN KEY (guild_id) REFERENCES guilds (id)
+                    UNIQUE(user_id, channel_id),
+                    FOREIGN KEY (guild_id) REFERENCES guilds (id),
+                    FOREIGN KEY (channel_id) REFERENCES gym_channels (id)
                 );
 
                 -- Battle logs table
@@ -103,6 +110,45 @@ class Database {
                     reject(err);
                 } else {
                     console.log('Database tables created successfully');
+                    resolve();
+                }
+            });
+        });
+    }
+
+    async updateTables() {
+        return new Promise((resolve, reject) => {
+            // Check if gym_leaders table needs updating
+            this.db.get("PRAGMA table_info(gym_leaders)", (err, row) => {
+                if (err) {
+                    console.log('gym_leaders table needs to be recreated');
+                    // Recreate the gym_leaders table with new structure
+                    const updateSQL = `
+                        DROP TABLE IF EXISTS gym_leaders;
+                        CREATE TABLE gym_leaders (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            user_id TEXT NOT NULL,
+                            channel_id TEXT NOT NULL,
+                            guild_id TEXT NOT NULL,
+                            username TEXT NOT NULL,
+                            display_name TEXT,
+                            added_by TEXT,
+                            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                            UNIQUE(user_id, channel_id),
+                            FOREIGN KEY (guild_id) REFERENCES guilds (id),
+                            FOREIGN KEY (channel_id) REFERENCES gym_channels (id)
+                        );
+                    `;
+                    
+                    this.db.exec(updateSQL, (err) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            console.log('Gym leaders table updated successfully');
+                            resolve();
+                        }
+                    });
+                } else {
                     resolve();
                 }
             });
@@ -167,6 +213,62 @@ class Database {
             this.db.run(sql, [isOpen, channelId], function(err) {
                 if (err) reject(err);
                 else resolve(this);
+            });
+        });
+    }
+
+    // Gym leader methods
+    async addGymLeader(userId, channelId, guildId, username, displayName, addedBy) {
+        return new Promise((resolve, reject) => {
+            const sql = 'INSERT OR REPLACE INTO gym_leaders (user_id, channel_id, guild_id, username, display_name, added_by) VALUES (?, ?, ?, ?, ?, ?)';
+            this.db.run(sql, [userId, channelId, guildId, username, displayName, addedBy], function(err) {
+                if (err) reject(err);
+                else resolve(this);
+            });
+        });
+    }
+
+    async removeGymLeader(userId, channelId) {
+        return new Promise((resolve, reject) => {
+            const sql = 'DELETE FROM gym_leaders WHERE user_id = ? AND channel_id = ?';
+            this.db.run(sql, [userId, channelId], function(err) {
+                if (err) reject(err);
+                else resolve(this.changes > 0);
+            });
+        });
+    }
+
+    async isGymLeader(userId, channelId) {
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT COUNT(*) as count FROM gym_leaders WHERE user_id = ? AND channel_id = ?';
+            this.db.get(sql, [userId, channelId], (err, row) => {
+                if (err) reject(err);
+                else resolve(row.count > 0);
+            });
+        });
+    }
+
+    async getChannelGymLeaders(channelId) {
+        return new Promise((resolve, reject) => {
+            const sql = 'SELECT * FROM gym_leaders WHERE channel_id = ?';
+            this.db.all(sql, [channelId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+
+    async getGymLeaderChannels(userId, guildId) {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT gl.*, gc.name as channel_name, gc.type as gym_type, gc.emoji
+                FROM gym_leaders gl 
+                JOIN gym_channels gc ON gl.channel_id = gc.id 
+                WHERE gl.user_id = ? AND gl.guild_id = ?
+            `;
+            this.db.all(sql, [userId, guildId], (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
             });
         });
     }

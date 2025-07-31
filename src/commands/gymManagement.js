@@ -1,10 +1,14 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
-// Helper function to check if user is gym leader
-function isGymLeader(member) {
-    const gymLeaderRoles = process.env.GYM_LEADER_ROLES?.split(',') || [];
-    return member.roles.cache.some(role => gymLeaderRoles.includes(role.id)) || 
-           member.permissions.has('Administrator');
+// Helper function to check if user is gym leader of specific channel
+async function isGymLeaderOfChannel(db, userId, channelId, member) {
+    // Check database first
+    const isLeader = await db.isGymLeader(userId, channelId);
+    
+    // Also allow administrators to use commands
+    const isAdmin = member.permissions.has('Administrator');
+    
+    return isLeader || isAdmin;
 }
 
 module.exports = [
@@ -16,15 +20,28 @@ module.exports = [
         async execute(interaction, db) {
             await interaction.deferReply();
 
-            if (!isGymLeader(interaction.member)) {
-                return await interaction.editReply({
-                    content: '❌ Only Gym Leaders can manage gym status!'
-                });
-            }
-
             const channel = interaction.channel;
-            
+
             try {
+                // Check if user is gym leader of this channel
+                const canUseCommand = await isGymLeaderOfChannel(db, interaction.user.id, channel.id, interaction.member);
+                
+                if (!canUseCommand) {
+                    return await interaction.editReply({
+                        content: '❌ Only gym leaders of this channel can manage gym status! An administrator can assign you using `/add @user` in this channel.'
+                    });
+                }
+
+                // Verify this is a gym channel
+                const gymChannels = await db.getGymChannels(interaction.guild.id);
+                const gymChannel = gymChannels.find(gc => gc.id === channel.id);
+
+                if (!gymChannel) {
+                    return await interaction.editReply({
+                        content: '❌ This command can only be used in gym channels created by `/setup`!'
+                    });
+                }
+
                 // Update channel permissions to allow messages
                 await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
                     SendMessages: true,
@@ -46,7 +63,8 @@ module.exports = [
                     .setColor(0x2ecc71)
                     .addFields(
                         { name: 'Status', value: '🟢 Open', inline: true },
-                        { name: 'Opened by', value: interaction.user.toString(), inline: true }
+                        { name: 'Opened by', value: interaction.user.toString(), inline: true },
+                        { name: 'Gym Channel', value: `${gymChannel.emoji} ${gymChannel.name}`, inline: true }
                     )
                     .setTimestamp();
 
@@ -69,16 +87,29 @@ module.exports = [
         async execute(interaction, db) {
             await interaction.deferReply();
 
-            if (!isGymLeader(interaction.member)) {
-                return await interaction.editReply({
-                    content: '❌ Only Gym Leaders can manage gym status!'
-                });
-            }
-
             const channel = interaction.channel;
-            
+
             try {
-                // Update channel permissions to deny messages from everyone except gym leaders
+                // Check if user is gym leader of this channel
+                const canUseCommand = await isGymLeaderOfChannel(db, interaction.user.id, channel.id, interaction.member);
+                
+                if (!canUseCommand) {
+                    return await interaction.editReply({
+                        content: '❌ Only gym leaders of this channel can manage gym status! An administrator can assign you using `/add @user` in this channel.'
+                    });
+                }
+
+                // Verify this is a gym channel
+                const gymChannels = await db.getGymChannels(interaction.guild.id);
+                const gymChannel = gymChannels.find(gc => gc.id === channel.id);
+
+                if (!gymChannel) {
+                    return await interaction.editReply({
+                        content: '❌ This command can only be used in gym channels created by `/setup`!'
+                    });
+                }
+
+                // Update channel permissions to deny messages from everyone except gym leaders and admins
                 await channel.permissionOverwrites.edit(interaction.guild.roles.everyone, {
                     SendMessages: false,
                     ViewChannel: true,
@@ -99,7 +130,8 @@ module.exports = [
                     .setColor(0xe74c3c)
                     .addFields(
                         { name: 'Status', value: '🔴 Closed', inline: true },
-                        { name: 'Closed by', value: interaction.user.toString(), inline: true }
+                        { name: 'Closed by', value: interaction.user.toString(), inline: true },
+                        { name: 'Gym Channel', value: `${gymChannel.emoji} ${gymChannel.name}`, inline: true }
                     )
                     .setTimestamp();
 
@@ -129,16 +161,29 @@ module.exports = [
         async execute(interaction, db) {
             await interaction.deferReply({ ephemeral: true });
 
-            if (!isGymLeader(interaction.member)) {
-                return await interaction.editReply({
-                    content: '❌ Only Gym Leaders can clear gym channels!'
-                });
-            }
-
             const channel = interaction.channel;
             const amount = interaction.options.getInteger('amount') || 10;
-            
+
             try {
+                // Check if user is gym leader of this channel
+                const canUseCommand = await isGymLeaderOfChannel(db, interaction.user.id, channel.id, interaction.member);
+                
+                if (!canUseCommand) {
+                    return await interaction.editReply({
+                        content: '❌ Only gym leaders of this channel can clear messages! An administrator can assign you using `/add @user` in this channel.'
+                    });
+                }
+
+                // Verify this is a gym channel
+                const gymChannels = await db.getGymChannels(interaction.guild.id);
+                const gymChannel = gymChannels.find(gc => gc.id === channel.id);
+
+                if (!gymChannel) {
+                    return await interaction.editReply({
+                        content: '❌ This command can only be used in gym channels created by `/setup`!'
+                    });
+                }
+
                 // Fetch messages to delete
                 const messages = await channel.messages.fetch({ limit: amount });
                 
@@ -157,7 +202,7 @@ module.exports = [
                 await channel.bulkDelete(deletableMessages, true);
 
                 await interaction.editReply({
-                    content: `✅ Successfully deleted ${deletableMessages.size} messages from the gym channel.`
+                    content: `✅ Successfully deleted ${deletableMessages.size} messages from ${gymChannel.emoji} **${gymChannel.name}**.`
                 });
 
                 // Send a log message
@@ -167,12 +212,17 @@ module.exports = [
                     .setColor(0x3498db)
                     .addFields(
                         { name: 'Cleaned by', value: interaction.user.toString(), inline: true },
-                        { name: 'Messages deleted', value: deletableMessages.size.toString(), inline: true }
+                        { name: 'Messages deleted', value: deletableMessages.size.toString(), inline: true },
+                        { name: 'Gym Channel', value: `${gymChannel.emoji} ${gymChannel.name}`, inline: true }
                     )
                     .setTimestamp();
 
                 setTimeout(async () => {
-                    await channel.send({ embeds: [embed] });
+                    try {
+                        await channel.send({ embeds: [embed] });
+                    } catch (error) {
+                        console.log('Could not send cleanup notification:', error.message);
+                    }
                 }, 1000);
 
             } catch (error) {
@@ -215,7 +265,13 @@ module.exports = [
                     const channel = interaction.guild.channels.cache.get(gym.id);
                     if (channel) {
                         const status = gym.is_open ? '🟢 Open' : '🔴 Closed';
-                        statusText += `${gym.emoji} **${gym.name}**: ${status}\n`;
+                        
+                        // Get gym leaders for this channel
+                        const leaders = await db.getChannelGymLeaders(gym.id);
+                        const leaderCount = leaders.length;
+                        const leaderText = leaderCount > 0 ? `(${leaderCount} leader${leaderCount !== 1 ? 's' : ''})` : '(No leaders)';
+                        
+                        statusText += `${gym.emoji} **${gym.name}**: ${status} ${leaderText}\n`;
                         
                         if (gym.is_open) openGyms++;
                         else closedGyms++;
@@ -224,7 +280,8 @@ module.exports = [
 
                 embed.addFields(
                     { name: 'Gym Status', value: statusText || 'No gyms found', inline: false },
-                    { name: 'Summary', value: `🟢 Open: ${openGyms}\n🔴 Closed: ${closedGyms}`, inline: true }
+                    { name: 'Summary', value: `🟢 Open: ${openGyms}\n🔴 Closed: ${closedGyms}\n👥 Total Channels: ${gymChannels.length}`, inline: true },
+                    { name: 'Management', value: 'Use `/add @user` in a gym channel to assign leaders\nUse `/leaders` to see current assignments', inline: true }
                 );
 
                 await interaction.editReply({ embeds: [embed] });

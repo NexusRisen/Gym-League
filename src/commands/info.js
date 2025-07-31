@@ -20,33 +20,44 @@ module.exports = [
                                '`/badges` - See your badge collection\n' +
                                '`/leaderboard` - Check server rankings\n' +
                                '`/gyminfo` - Get information about gyms\n' +
-                               '`/gymstatus` - See which gyms are open',
+                               '`/gymstatus` - See which gyms are open\n' +
+                               '`/leaders` - View gym leader assignments',
                         inline: true
                     },
                     {
                         name: '⚔️ For Gym Leaders',
                         value: '`/won @trainer` - Award a badge for victory\n' +
                                '`/lose @trainer` - Log a battle defeat\n' +
-                               '`/opengym` - Open your gym for battles\n' +
-                               '`/closegym` - Temporarily close your gym\n' +
-                               '`/cleargym` - Clear recent messages',
+                               '`/opengym` - Open your assigned gym\n' +
+                               '`/closegym` - Close your assigned gym\n' +
+                               '`/cleargym` - Clear recent messages\n' +
+                               '`/leaders me` - See your assignments',
                         inline: true
                     },
                     {
                         name: '🛠️ For Admins',
                         value: '`/setup` - Initialize the gym league\n' +
-                               '`/gymstatus` - Check all gym statuses\n' +
+                               '`/add @user` - Assign gym leader to channel\n' +
+                               '`/remove @user` - Remove gym leader from channel\n' +
+                               '`/leaders all` - View all server leaders\n' +
                                'All gym leader commands work for admins',
                         inline: false
                     },
                     {
-                        name: '🏆 How to Battle',
-                        value: '1. Visit any gym channel\n' +
-                               '2. Challenge the gym leader\n' +
-                               '3. Battle with your Pokemon\n' +
-                               '4. Earn badges for victories!\n' +
-                               '5. Collect 8 badges to challenge Elite Four\n' +
-                               '6. Defeat Elite Four to face the Champion',
+                        name: '🏆 How the New System Works',
+                        value: '1. **No Roles Required** - Gym leaders are stored in database\n' +
+                               '2. **Channel-Specific** - Each gym channel has its own leaders\n' +
+                               '3. **Easy Management** - Use `/add` and `/remove` in gym channels\n' +
+                               '4. **Battle & Manage** - Leaders can only control their assigned gyms\n' +
+                               '5. **Admin Override** - Administrators can use all commands',
+                        inline: false
+                    },
+                    {
+                        name: '🚀 Getting Started (Admins)',
+                        value: '1. Run `/setup` to create gym channels\n' +
+                               '2. Go to each gym channel and use `/add @user`\n' +
+                               '3. Assigned leaders can now manage their gym\n' +
+                               '4. Trainers can start challenging gym leaders!',
                         inline: false
                     },
                     {
@@ -56,7 +67,7 @@ module.exports = [
                     },
                     {
                         name: '📞 Need More Help?',
-                        value: 'Ask an admin or gym leader in your server for assistance with battles and gym challenges!',
+                        value: 'Ask an admin to assign you as a gym leader using `/add @you` in the gym channel you want to manage!',
                         inline: false
                     }
                 )
@@ -82,6 +93,7 @@ module.exports = [
                         { name: 'All Gyms', value: 'gyms' },
                         { name: 'Elite Four', value: 'elite' },
                         { name: 'Champion', value: 'champion' },
+                        { name: 'Management Guide', value: 'management' },
                         { name: 'Overview', value: 'overview' }
                     )
             ),
@@ -95,6 +107,57 @@ module.exports = [
                 let embed;
 
                 switch (category) {
+                    case 'management':
+                        embed = new EmbedBuilder()
+                            .setTitle('👥 Gym Leader Management Guide')
+                            .setDescription('How to manage gym leaders in the new database system')
+                            .setColor(0x2ecc71);
+
+                        embed.addFields(
+                            {
+                                name: '🔧 For Administrators',
+                                value: '**Assigning Gym Leaders:**\n' +
+                                       '• Go to any gym channel\n' +
+                                       '• Use `/add @user` to assign them as gym leader\n' +
+                                       '• Use `/remove @user` to remove gym leader\n' +
+                                       '• Use `/leaders all` to see all assignments\n\n' +
+                                       '**Benefits:**\n' +
+                                       '• No Discord roles needed\n' +
+                                       '• Channel-specific permissions\n' +
+                                       '• Easy to manage and track',
+                                inline: false
+                            },
+                            {
+                                name: '⚔️ For Gym Leaders',
+                                value: '**Your Commands (in assigned channels only):**\n' +
+                                       '• `/won @trainer` - Award badges to winners\n' +
+                                       '• `/lose @trainer` - Log trainer defeats\n' +
+                                       '• `/opengym` - Open your gym for battles\n' +
+                                       '• `/closegym` - Close your gym temporarily\n' +
+                                       '• `/cleargym [amount]` - Clear recent messages\n' +
+                                       '• `/leaders me` - See your gym assignments',
+                                inline: false
+                            },
+                            {
+                                name: '📋 Channel Restrictions',
+                                value: '• Gym leader commands only work in assigned channels\n' +
+                                       '• Each gym can have multiple leaders\n' +
+                                       '• Leaders cannot affect other gyms\n' +
+                                       '• Administrators can use all commands everywhere',
+                                inline: false
+                            },
+                            {
+                                name: '🎯 Quick Setup Example',
+                                value: '1. Admin runs `/setup` (creates all gym channels)\n' +
+                                       '2. Admin goes to Rock Gym channel\n' +
+                                       '3. Admin uses `/add @rocktrainer`\n' +
+                                       '4. @rocktrainer can now manage Rock Gym battles\n' +
+                                       '5. Repeat for each gym with different users',
+                                inline: false
+                            }
+                        );
+                        break;
+
                     case 'gyms':
                         embed = new EmbedBuilder()
                             .setTitle('🏠 Gym Leaders Information')
@@ -218,8 +281,11 @@ module.exports = [
                                 inline: false
                             },
                             {
-                                name: '🏅 Badge System',
-                                value: 'Win battles to earn badges! Track your progress with `/profile` and see all your badges with `/badges`.',
+                                name: '🏅 New Management System',
+                                value: '• **No Discord roles needed** - Gym leaders stored in database\n' +
+                                       '• **Channel-specific** - Each gym has its own leaders\n' +
+                                       '• **Easy management** - Admins use `/add @user` in gym channels\n' +
+                                       '• Use `/gyminfo management` for detailed setup guide',
                                 inline: false
                             },
                             {
@@ -268,6 +334,7 @@ module.exports = [
                                '• Champion Battles\n' +
                                '• Badge Collection System\n' +
                                '• Web Leaderboard Interface\n' +
+                               '• Database-driven Gym Leaders\n' +
                                '• Real-time Progress Tracking',
                         inline: true
                     },
@@ -280,9 +347,17 @@ module.exports = [
                         inline: true
                     },
                     {
+                        name: '🔧 New Management System',
+                        value: '• **No Discord Roles** - Uses database storage\n' +
+                               '• **Channel-Specific** - Leaders assigned per gym\n' +
+                               '• **Easy Administration** - Simple `/add` and `/remove`\n' +
+                               '• **Automatic Setup** - Database auto-creates/updates',
+                        inline: false
+                    },
+                    {
                         name: '🛠️ Technology Stack',
                         value: '• **Discord.js** - Bot framework\n' +
-                               '• **SQLite3** - Database\n' +
+                               '• **SQLite3** - Database with auto-management\n' +
                                '• **Express.js** - Web server\n' +
                                '• **Node.js** - Runtime environment',
                         inline: false
@@ -294,12 +369,12 @@ module.exports = [
                     },
                     {
                         name: '📞 Support',
-                        value: 'For help and support, use `/help` or contact your server administrators.',
+                        value: 'For help and support, use `/help` or contact your server administrators. Use `/gyminfo management` for setup guides.',
                         inline: false
                     }
                 )
                 .setFooter({
-                    text: `Version 1.0.0 • Running on ${interaction.guild.name}`,
+                    text: `Version 2.0.0 • Database System • Running on ${interaction.guild.name}`,
                     iconURL: interaction.guild.iconURL()
                 })
                 .setTimestamp();

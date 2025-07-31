@@ -1,11 +1,15 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const gymConfig = require('../config/gymConfig');
 
-// Helper function to check if user is gym leader
-function isGymLeader(member) {
-    const gymLeaderRoles = process.env.GYM_LEADER_ROLES?.split(',') || [];
-    return member.roles.cache.some(role => gymLeaderRoles.includes(role.id)) || 
-           member.permissions.has('Administrator');
+// Helper function to check if user is gym leader of specific channel
+async function isGymLeaderOfChannel(db, userId, channelId, member) {
+    // Check database first
+    const isLeader = await db.isGymLeader(userId, channelId);
+    
+    // Also allow administrators to use commands
+    const isAdmin = member.permissions.has('Administrator');
+    
+    return isLeader || isAdmin;
 }
 
 // Helper function to get gym info from channel
@@ -44,24 +48,45 @@ module.exports = [
         async execute(interaction, db) {
             await interaction.deferReply();
 
-            // Check if user is gym leader
-            if (!isGymLeader(interaction.member)) {
-                return await interaction.editReply({
-                    content: '❌ Only Gym Leaders can award badges!'
-                });
-            }
-
             const trainer = interaction.options.getUser('trainer');
             const channel = interaction.channel;
-            const gym = getGymFromChannel(channel.name);
-
-            if (!gym) {
-                return await interaction.editReply({
-                    content: '❌ This command can only be used in gym channels!'
-                });
-            }
 
             try {
+                // Check if user is gym leader of this channel
+                const canUseCommand = await isGymLeaderOfChannel(db, interaction.user.id, channel.id, interaction.member);
+                
+                if (!canUseCommand) {
+                    return await interaction.editReply({
+                        content: '❌ Only gym leaders of this channel can award badges! An administrator can assign you using `/add @user` in this channel.'
+                    });
+                }
+
+                // Verify this is a gym channel
+                const gymChannels = await db.getGymChannels(interaction.guild.id);
+                const gymChannel = gymChannels.find(gc => gc.id === channel.id);
+
+                if (!gymChannel) {
+                    return await interaction.editReply({
+                        content: '❌ This command can only be used in gym channels created by `/setup`!'
+                    });
+                }
+
+                // Get gym configuration
+                let gym = null;
+                if (gymChannel.type === 'champion') {
+                    gym = gymConfig.champion;
+                } else if (gymChannel.type.includes('elite')) {
+                    gym = gymConfig.eliteFour.find(e => e.type === gymChannel.type);
+                } else {
+                    gym = gymConfig.gyms.find(g => g.type === gymChannel.type);
+                }
+
+                if (!gym) {
+                    return await interaction.editReply({
+                        content: '❌ Could not find gym configuration for this channel!'
+                    });
+                }
+
                 // Add trainer to database if not exists
                 await db.addTrainer(trainer.id, interaction.guild.id, trainer.username, trainer.displayName);
                 
@@ -140,24 +165,45 @@ module.exports = [
         async execute(interaction, db) {
             await interaction.deferReply();
 
-            // Check if user is gym leader
-            if (!isGymLeader(interaction.member)) {
-                return await interaction.editReply({
-                    content: '❌ Only Gym Leaders can log battle results!'
-                });
-            }
-
             const trainer = interaction.options.getUser('trainer');
             const channel = interaction.channel;
-            const gym = getGymFromChannel(channel.name);
-
-            if (!gym) {
-                return await interaction.editReply({
-                    content: '❌ This command can only be used in gym channels!'
-                });
-            }
 
             try {
+                // Check if user is gym leader of this channel
+                const canUseCommand = await isGymLeaderOfChannel(db, interaction.user.id, channel.id, interaction.member);
+                
+                if (!canUseCommand) {
+                    return await interaction.editReply({
+                        content: '❌ Only gym leaders of this channel can log battle results! An administrator can assign you using `/add @user` in this channel.'
+                    });
+                }
+
+                // Verify this is a gym channel
+                const gymChannels = await db.getGymChannels(interaction.guild.id);
+                const gymChannel = gymChannels.find(gc => gc.id === channel.id);
+
+                if (!gymChannel) {
+                    return await interaction.editReply({
+                        content: '❌ This command can only be used in gym channels created by `/setup`!'
+                    });
+                }
+
+                // Get gym configuration
+                let gym = null;
+                if (gymChannel.type === 'champion') {
+                    gym = gymConfig.champion;
+                } else if (gymChannel.type.includes('elite')) {
+                    gym = gymConfig.eliteFour.find(e => e.type === gymChannel.type);
+                } else {
+                    gym = gymConfig.gyms.find(g => g.type === gymChannel.type);
+                }
+
+                if (!gym) {
+                    return await interaction.editReply({
+                        content: '❌ Could not find gym configuration for this channel!'
+                    });
+                }
+
                 // Add trainer to database if not exists
                 await db.addTrainer(trainer.id, interaction.guild.id, trainer.username, trainer.displayName);
                 
